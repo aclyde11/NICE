@@ -37,9 +37,11 @@
 #include "include/vector.h"
 #include "include/cpu_operations.h"
 #include "include/gpu_operations.h"
-#include "include/kmeans.h"
 #include "include/util.h"
-#include "include/kdac_profiler.h"
+
+#include "include/kmeans.h"
+#include "include/kmeans_cpu.h"
+#include "include/kmeans_gpu.h"
 
 namespace Nice {
 // The numpy array is stored in row major
@@ -63,11 +65,12 @@ template<typename T>
 class KmeansInterface {
  public:
   explicit KmeansInterface(std::string device_type) {
-    kmeans_ = std::make_shared<Nice::KMeans<T>>();
-    //if (device_type == "cpu")
-    //    kmeans_ = std::make_shared<Nice::KMeansCPU<T>>();
-    //else if (device_type == "gpu")
-    //    kmeans_ = std::make_shared<Nice::KMeansGPU<T>>();
+    if (device_type == "cpu")
+      kmeans_ = std::make_shared<Nice::KMeansCPU<T>>();
+#ifdef CUDA_AND_GPU
+    else if (device_type == "gpu")
+      kmeans_ = std::make_shared<Nice::KMeansGPU<T>>();
+#endif
   }
 
   ~KmeansInterface() {}

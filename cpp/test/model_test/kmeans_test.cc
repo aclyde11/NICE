@@ -26,6 +26,8 @@
 #include "Eigen/Dense"
 #include "gtest/gtest.h"
 #include "include/kmeans.h"
+#include "include/kmeans_cpu.h"
+#include "include/kmeans_gpu.h"
 #include "gtest/gtest.h"
 #include "include/util.h"
 #include "include/matrix.h"
@@ -38,7 +40,7 @@ template<typename T>
 class KMeansTest : public ::testing::Test {
  protected:
 //  Nice::Matrix<T> data_matrix_;
-  std::shared_ptr<Nice::KMeans<T>> kmeans_;
+  std::shared_ptr<Nice::KMeansCPU<T>> kmeans_;
   int k_;
   std::string device_type_;
   std::string data_file_path_;
@@ -56,9 +58,9 @@ class KMeansTest : public ::testing::Test {
     device_type_ = device_type;
 
     if (device_type_ == "cpu")
-      kmeans_ = std::make_shared<Nice::KMeans<T>>();
+      kmeans_ = std::make_shared<Nice::KMeansCPU<T>>();
     else if (device_type_ == "gpu")
-      kmeans_ = nullptr;
+      kmeans_ = std::make_shared<Nice::KMeansCPU<T>>();
 
     data_file_path_ = base_dir + file_name;
     std::cout << "data_file_path: " << data_file_path_ << std::endl;

@@ -43,7 +43,7 @@
 #include "include/cpu_operations.h"
 #include "include/gpu_operations.h"
 #include "include/svd_solver.h"
-#include "include/kmeans.h"
+#include "include/kmeans_cpu.h"
 #include "Eigen/Core"
 #include "include/util.h"
 #include "include/kernel_types.h"

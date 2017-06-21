@@ -63,7 +63,6 @@ class KDACTest : public ::testing::Test {
     num_samples_ = num_clusters_ * num_samples_per_cluster_;
     dim_ = dim;
     device_type_ = device_type;
-
 #ifndef CUDA_AND_GPU
     if (device_type_ == "cpu")
       kdac_ = std::make_shared<Nice::KDACCPU<T>>();
@@ -73,7 +72,6 @@ class KDACTest : public ::testing::Test {
     else if (device_type_ == "gpu")
       kdac_ = std::make_shared<Nice::KDACGPU<T>>();
 #endif
-
     kdac_->SetQ(num_clusters_);
     kdac_->SetC(num_clusters_);
     kdac_->SetKernel(Nice::kGaussianKernel, 1.0);
