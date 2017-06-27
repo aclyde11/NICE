@@ -41,7 +41,6 @@ static inline int nextPowerOfTwo(int n) {
   n = n >> 4 | n;
   n = n >> 8 | n;
   n = n >> 16 | n;
-  n = n >> 32 | n;
   return ++n;
 }
 
@@ -225,7 +224,7 @@ float **Nice::cuda_kmeans(float **objects,      /* in: [numObjs][numCoords] */
 
   const unsigned int clusterBlockSharedDataSize = numThreadsPerClusterBlock * sizeof(unsigned char);
 
-  const unsigned int numReductionThreads = nextPowerOfTwo(numClusterBlocks);
+  const unsigned int numReductionThreads = 256;
   const unsigned int reductionBlockSharedDataSize = numReductionThreads * sizeof(unsigned int);
 
   checkCuda(cudaMalloc(&deviceObjects, numObjs * numCoords * sizeof(float)));
