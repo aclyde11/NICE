@@ -190,8 +190,7 @@ float **Nice::cuda_kmeans(float **objects,      /* in: [numObjs][numCoords] */
   int *deviceIntermediates;
 
 
-  //  Copy objects given in [numObjs][numCoords] layout to new
-  //  [numCoords][numObjs] layout
+  // transpose dimObjects
   malloc2D(dimObjects, numCoords, numObjs, float);
   for (i = 0; i < numCoords; i++) {
     for (j = 0; j < numObjs; j++) {
@@ -221,7 +220,7 @@ float **Nice::cuda_kmeans(float **objects,      /* in: [numObjs][numCoords] */
   //  two, and it *must* be no larger than the number of bits that will
   //  fit into an unsigned char, the type used to keep track of membership
   //  changes in the kernel.
-  const unsigned int numThreadsPerClusterBlock = 128;
+  const unsigned int numThreadsPerClusterBlock = 224;
   const unsigned int numClusterBlocks =
       (numObjs + numThreadsPerClusterBlock - 1) / numThreadsPerClusterBlock;
 
