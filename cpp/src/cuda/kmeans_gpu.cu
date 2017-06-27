@@ -245,7 +245,7 @@ float **Nice::cuda_kmeans(float **objects,      /* in: [numObjs][numCoords] */
            numClusterBlocks,
            numThreadsPerClusterBlock,
            clusterBlockSharedDataSize);
-    std::cout << endl;
+    std::cout << std::endl;
 
     find_nearest_cluster
         << < numClusterBlocks, numThreadsPerClusterBlock, clusterBlockSharedDataSize >> >
@@ -255,7 +255,7 @@ float **Nice::cuda_kmeans(float **objects,      /* in: [numObjs][numCoords] */
     checkLastCudaError();
 
     printf("num reduct threads %d, shared size %d", numReductionThreads, reductionBlockSharedDataSize);
-    std::cout << endl;
+    std::cout << std::endl;
     compute_delta << < 1, numReductionThreads, reductionBlockSharedDataSize >> >
         (deviceIntermediates, numClusterBlocks, numReductionThreads);
 
