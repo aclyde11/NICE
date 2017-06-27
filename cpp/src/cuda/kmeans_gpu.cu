@@ -33,17 +33,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static inline int nextPowerOfTwo(int n) {
-  n--;
-
-  n = n >> 1 | n;
-  n = n >> 2 | n;
-  n = n >> 4 | n;
-  n = n >> 8 | n;
-  n = n >> 16 | n;
-  return ++n;
-}
-
 __host__ __device__ inline static
 float euclid_dist_2(int numCoords,
                     int numObjs,
@@ -215,16 +204,13 @@ float **Nice::cuda_kmeans(float **objects,      /* in: [numObjs][numCoords] */
   malloc2D(newClusters, numCoords, numClusters, float);
   memset(newClusters[0], 0, numCoords * numClusters * sizeof(float));
 
-  //  To support reduction, numThreadsPerClusterBlock *must* be a power of
-  //  two, and it *must* be no larger than the number of bits that will
-  //  fit into an unsigned char, the type used to keep track of membership
-  //  changes in the kernel.
+  // numThreadsPerClusterBlock must be 128
   const unsigned int numThreadsPerClusterBlock = 128;
   const unsigned int numClusterBlocks = (numObjs + numThreadsPerClusterBlock - 1) / numThreadsPerClusterBlock;
 
   const unsigned int clusterBlockSharedDataSize = numThreadsPerClusterBlock * sizeof(unsigned char);
 
-  const unsigned int numReductionThreads = 256;
+  const unsigned int numReductionThreads = numThreadsPerClusterBlock * 2;
   const unsigned int reductionBlockSharedDataSize = numReductionThreads * sizeof(unsigned int);
 
   checkCuda(cudaMalloc(&deviceObjects, numObjs * numCoords * sizeof(float)));
@@ -240,11 +226,6 @@ float **Nice::cuda_kmeans(float **objects,      /* in: [numObjs][numCoords] */
   do {
     checkCuda(cudaMemcpy(deviceClusters, dimClusters[0],
                          numClusters * numCoords * sizeof(float), cudaMemcpyHostToDevice));
-    printf("num cluster blocks %d, num threads per block %d, num data %d",
-           numClusterBlocks,
-           numThreadsPerClusterBlock,
-           clusterBlockSharedDataSize);
-    std::cout << std::endl;
 
     find_nearest_cluster
         << < numClusterBlocks, numThreadsPerClusterBlock, clusterBlockSharedDataSize >> >
@@ -253,8 +234,6 @@ float **Nice::cuda_kmeans(float **objects,      /* in: [numObjs][numCoords] */
     cudaDeviceSynchronize();
     checkLastCudaError();
 
-    printf("num reduct threads %d, shared size %d", numReductionThreads, reductionBlockSharedDataSize);
-    std::cout << std::endl;
     compute_delta << < 1, numReductionThreads, reductionBlockSharedDataSize >> >
         (deviceIntermediates, numClusterBlocks, numReductionThreads);
 
