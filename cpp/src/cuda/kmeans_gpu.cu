@@ -53,12 +53,10 @@ float euclid_dist_2(int numCoords,
                     float *clusters,    // [numCoords][numClusters]
                     int objectId,
                     int clusterId) {
-  int i;
   float ans = 0.0;
 
-  for (i = 0; i < numCoords; i++) {
-    ans += (objects[numObjs * i + objectId] - clusters[numClusters * i + clusterId]) *
-        (objects[numObjs * i + objectId] - clusters[numClusters * i + clusterId]);
+  for (int i = 0; i < numCoords; i++) {
+    ans += powf((objects[numObjs * i + objectId] - clusters[numClusters * i + clusterId]), 2);
   }
 
   return (ans);
