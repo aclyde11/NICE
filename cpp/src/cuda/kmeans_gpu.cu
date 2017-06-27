@@ -220,17 +220,13 @@ float **Nice::cuda_kmeans(float **objects,      /* in: [numObjs][numCoords] */
   //  two, and it *must* be no larger than the number of bits that will
   //  fit into an unsigned char, the type used to keep track of membership
   //  changes in the kernel.
-  const unsigned int numThreadsPerClusterBlock = 224;
-  const unsigned int numClusterBlocks =
-      (numObjs + numThreadsPerClusterBlock - 1) / numThreadsPerClusterBlock;
+  const unsigned int numThreadsPerClusterBlock = 128;
+  const unsigned int numClusterBlocks = (numObjs + numThreadsPerClusterBlock - 1) / numThreadsPerClusterBlock;
 
-  const unsigned int clusterBlockSharedDataSize =
-      numThreadsPerClusterBlock * sizeof(unsigned char);
+  const unsigned int clusterBlockSharedDataSize = numThreadsPerClusterBlock * sizeof(unsigned char);
 
-  const unsigned int numReductionThreads =
-      nextPowerOfTwo(numClusterBlocks);
-  const unsigned int reductionBlockSharedDataSize =
-      numReductionThreads * sizeof(unsigned int);
+  const unsigned int numReductionThreads = nextPowerOfTwo(numClusterBlocks);
+  const unsigned int reductionBlockSharedDataSize = numReductionThreads * sizeof(unsigned int);
 
   checkCuda(cudaMalloc(&deviceObjects, numObjs * numCoords * sizeof(float)));
   checkCuda(cudaMalloc(&deviceClusters, numClusters * numCoords * sizeof(float)));
@@ -245,15 +241,21 @@ float **Nice::cuda_kmeans(float **objects,      /* in: [numObjs][numCoords] */
   do {
     checkCuda(cudaMemcpy(deviceClusters, dimClusters[0],
                          numClusters * numCoords * sizeof(float), cudaMemcpyHostToDevice));
+    printf("num cluster blocks %d, num threads per block %d, num data %d",
+           numClusterBlocks,
+           numThreadsPerClusterBlock,
+           clusterBlockSharedDataSize);
+    std::cout << endl;
 
     find_nearest_cluster
         << < numClusterBlocks, numThreadsPerClusterBlock, clusterBlockSharedDataSize >> >
-        (numCoords, numObjs, numClusters,
-            deviceObjects, deviceClusters, deviceMembership, deviceIntermediates);
+        (numCoords, numObjs, numClusters, deviceObjects, deviceClusters, deviceMembership, deviceIntermediates);
 
     cudaDeviceSynchronize();
     checkLastCudaError();
 
+    printf("num reduct threads %d, shared size %d", numReductionThreads, reductionBlockSharedDataSize);
+    std::cout << endl;
     compute_delta << < 1, numReductionThreads, reductionBlockSharedDataSize >> >
         (deviceIntermediates, numClusterBlocks, numReductionThreads);
 
